@@ -20,7 +20,17 @@
             box-sizing: border-box;
         }
         .container { display: flex; background: rgba(25, 25, 25, 0.85); backdrop-filter: blur(8px); color: white; padding: 25px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); gap: 30px; max-width: 900px; width: 100%; border: 1px solid rgba(255,255,255,0.1); justify-content: center; flex-wrap: wrap; }
-        .wheel-area { position: relative; display: flex; justify-content: center; align-items: center; flex: 1; min-width: 280px; }
+        
+        /* تغییر کلیدی اینجاست: چرخ در موبایل بر اساس عرض صفحه کوچک می‌شود */
+        .wheel-area { 
+            position: relative; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            flex: 1; 
+            min-width: 280px; 
+            max-width: 100%;
+        }
         .control-area { width: 320px; display: flex; flex-direction: column; gap: 12px; max-height: 85vh; overflow-y: auto; padding-left: 5px; min-width: 280px; }
         
         .hidden { display: none !important; }
@@ -37,9 +47,21 @@
         .download-btn:hover { background-color: #26af5f; }
         
         .pointer { position: absolute; top: -5px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 25px solid #ff4754; z-index: 10; }
-        canvas { border-radius: 50%; box-shadow: 0 6px 20px rgba(0,0,0,0.4); border: 6px solid #ffffff; box-sizing: border-box; cursor: pointer; display: block; margin: 0 auto; }
+        
+        /* ریسپانسیو کردن مستقیم المنت بوم چرخ با CSS بدون وابستگی به کش جاوااسکریپت */
+        canvas { 
+            border-radius: 50%; 
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4); 
+            border: 6px solid #ffffff; 
+            box-sizing: border-box; 
+            cursor: pointer; 
+            display: block; 
+            margin: 0 auto; 
+            max-width: 100%; 
+            height: auto !important; 
+        }
 
-        /* پاپ‌آپ بررنده */
+        /* پاپ‌آپ برنده */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.75); display: flex; justify-content: center; align-items: center; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
         .modal-overlay.active { opacity: 1; pointer-events: auto; }
         .modal-box { background: white; padding: 30px; border-radius: 16px; text-align: center; max-width: 500px; width: 90%; box-shadow: 0 10px 35px rgba(0,0,0,0.5); transform: scale(0.8); transition: transform 0.3s ease; color: #333; }
@@ -57,7 +79,7 @@
     <div class="wheel-area">
         <div class="pointer"></div>
         <canvas id="wheelCanvas" width="400" height="400"></canvas>
-    }</div>
+    </div>
 
     <div class="control-area" id="adminPanel">
         <h2 style="margin: 0 0 5px 0; font-size: 18px; color: #1e90ff;">تنظیمات ادمین (نسخه ۱۵۰+ عکس)</h2>
@@ -84,9 +106,9 @@
 
 <div class="modal-overlay" id="winnerModal">
     <div class="modal-box">
-        <h2>🎉 بررنده انتخاب شد! 🎉</h2>
+        <h2>🎉 اجرا کن! 🎉</h2>
         <div class="winner-img-container" id="winnerImgContainer"></div>
-        <div class="winner-text" id="winnerText">نام بررنده</div>
+        <div class="winner-text" id="winnerText">نام برنده</div>
         <button class="close-btn" id="closeModalBtn">عالیه!</button>
     </div>
 </div>
@@ -116,22 +138,9 @@
     const urlParams = new URLSearchParams(window.location.search);
     const modeParam = urlParams.get('mode');
 
-    function resizeCanvas() {
-        if (modeParam === 'user') {
-            const size = Math.min(window.innerWidth * 0.85, window.innerHeight * 0.6, 400);
-            canvas.width = size;
-            canvas.height = size;
-        } else {
-            canvas.width = 400;
-            canvas.height = 400;
-        }
-        drawWheel();
-    }
-
     if (modeParam === 'user') {
         adminPanel.classList.add('hidden');
         fetchExternalData();
-        window.addEventListener('resize', resizeCanvas);
     } else {
         updateSegmentsFromText();
     }
@@ -156,7 +165,7 @@
             imgStr: (segments[index] && segments[index].imgStr) ? segments[index].imgStr : ""
         }));
         if (segments.length === 0) segments = [{ text: 'بدون گزینه', img: null, imgStr: "" }];
-        resizeCanvas();
+        drawWheel();
     }
 
     imageInput.addEventListener('change', function(e) {
@@ -192,7 +201,7 @@
                         }
                         segments = newSegments;
                         namesInput.value = textLines.join('\n');
-                        resizeCanvas();
+                        drawWheel();
                     }
                 };
                 img.src = event.target.result;
@@ -225,9 +234,8 @@
             ctx.rotate(i * anglePerSegment + anglePerSegment / 2);
             ctx.fillStyle = '#ffffff';
             
-            const fontSize = Math.max(10, Math.floor(radius / 14));
-            ctx.font = `bold ${fontSize}px Tahoma`;
-            
+            // فونت ثابت ۱۴ که با کوچک شدن سی‌اس‌اسی چرخ، خودش هم فیت می‌شود
+            ctx.font = 'bold 14px Tahoma';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText('★', radius / 1.4, 0); 
@@ -265,7 +273,7 @@
                 items.forEach((obj, idx) => {
                     segments[idx] = { text: obj.text, img: null, imgStr: "" };
                 });
-                resizeCanvas();
+                drawWheel();
                 return;
             }
 
@@ -279,7 +287,7 @@
                             items.forEach((obj, idx) => {
                                 if (!segments[idx]) segments[idx] = { text: obj.text, img: null, imgStr: "" };
                             });
-                            resizeCanvas();
+                            drawWheel();
                         }
                     };
                     img.src = item.imgStr;
