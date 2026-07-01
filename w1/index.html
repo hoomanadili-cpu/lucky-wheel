@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سیستم پیشرفته چرخ رازآلود - نسخه نامحدود</title>
+    <title>سیستم پیشرفته چرخ رازآلود - نسخه نامحدود ریسپانسیو</title>
     <style>
         body { 
             font-family: Tahoma, sans-serif; 
@@ -14,12 +14,14 @@
             display: flex; 
             justify-content: center; 
             align-items: center; 
-            height: 100vh; 
+            min-height: 100vh; 
             margin: 0; 
+            padding: 10px;
+            box-sizing: border-box;
         }
-        .container { display: flex; background: rgba(25, 25, 25, 0.85); backdrop-filter: blur(8px); color: white; padding: 25px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); gap: 30px; max-width: 900px; width: 100%; border: 1px solid rgba(255,255,255,0.1); justify-content: center; }
-        .wheel-area { position: relative; display: flex; justify-content: center; align-items: center; flex: 1; }
-        .control-area { width: 320px; display: flex; flex-direction: column; gap: 12px; max-height: 85vh; overflow-y: auto; padding-left: 5px; }
+        .container { display: flex; background: rgba(25, 25, 25, 0.85); backdrop-filter: blur(8px); color: white; padding: 25px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); gap: 30px; max-width: 900px; width: 100%; border: 1px solid rgba(255,255,255,0.1); justify-content: center; flex-wrap: wrap; }
+        .wheel-area { position: relative; display: flex; justify-content: center; align-items: center; flex: 1; min-width: 280px; }
+        .control-area { width: 320px; display: flex; flex-direction: column; gap: 12px; max-height: 85vh; overflow-y: auto; padding-left: 5px; min-width: 280px; }
         
         .hidden { display: none !important; }
         
@@ -34,8 +36,8 @@
         .download-btn { background-color: #2ed573; }
         .download-btn:hover { background-color: #26af5f; }
         
-        .pointer { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 25px solid #ff4754; z-index: 10; }
-        canvas { border-radius: 50%; box-shadow: 0 6px 20px rgba(0,0,0,0.4); border: 6px solid #ffffff; box-sizing: border-box; cursor: pointer; }
+        .pointer { position: absolute; top: -5px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 25px solid #ff4754; z-index: 10; }
+        canvas { border-radius: 50%; box-shadow: 0 6px 20px rgba(0,0,0,0.4); border: 6px solid #ffffff; box-sizing: border-box; cursor: pointer; display: block; margin: 0 auto; }
 
         /* پاپ‌آپ برنده */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.75); display: flex; justify-content: center; align-items: center; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
@@ -44,7 +46,7 @@
         .modal-overlay.active .modal-box { transform: scale(1); }
         .modal-box h2 { margin-top: 0; color: #2ecc71; font-size: 24px; }
         .winner-img-container { margin: 20px 0; display: flex; justify-content: center; }
-        .winner-img-container img { width: 300px; height: 300px; border-radius: 16px; object-fit: contain; background: #f8f9fa; border: 4px solid #2ecc71; box-shadow: 0 6px 16px rgba(0,0,0,0.15); }
+        .winner-img-container img { width: 100%; max-width: 300px; height: auto; max-height: 300px; border-radius: 16px; object-fit: contain; background: #f8f9fa; border: 4px solid #2ecc71; box-shadow: 0 6px 16px rgba(0,0,0,0.15); }
         .winner-text { font-size: 22px; font-weight: bold; margin-bottom: 20px; color: #2f3542; }
         .close-btn { background-color: #2ecc71; color: white; padding: 12px 25px; border-radius: 8px; border: none; font-size: 16px; cursor: pointer; font-weight: bold; width: 100%; }
     </style>
@@ -52,13 +54,11 @@
 <body>
 
 <div class="container">
-    <!-- بخش چرخ -->
     <div class="wheel-area">
         <div class="pointer"></div>
         <canvas id="wheelCanvas" width="400" height="400"></canvas>
-    </div>
+    }</div>
 
-    <!-- بخش کنترل‌ها (پنل ادمین) -->
     <div class="control-area" id="adminPanel">
         <h2 style="margin: 0 0 5px 0; font-size: 18px; color: #1e90ff;">تنظیمات ادمین (نسخه ۱۵۰+ عکس)</h2>
         
@@ -113,19 +113,29 @@
     
     const colors = ['#ff4757', '#2ed573', '#2f3542', '#1e90ff', '#ffa502', '#747d8c', '#9b59b6', '#34495e'];
 
-    // فاز هوشمند: اگر در URL حالت کاربر نبود، چک می‌کند آیا فایل دیتا روی هاست هست یا نه
     const urlParams = new URLSearchParams(window.location.search);
     const modeParam = urlParams.get('mode');
 
+    function resizeCanvas() {
+        if (modeParam === 'user') {
+            const size = Math.min(window.innerWidth * 0.85, window.innerHeight * 0.6, 400);
+            canvas.width = size;
+            canvas.height = size;
+        } else {
+            canvas.width = 400;
+            canvas.height = 400;
+        }
+        drawWheel();
+    }
+
     if (modeParam === 'user') {
-        // حالت کاربر نهایی: پنل کاملاً غیب می‌شود و دیتا از فایل سرور خوانده می‌شود
         adminPanel.classList.add('hidden');
         fetchExternalData();
+        window.addEventListener('resize', resizeCanvas);
     } else {
         updateSegmentsFromText();
     }
 
-    // لود خودکار بک‌گراند ادمین
     bgInput.addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (file) {
@@ -146,7 +156,7 @@
             imgStr: (segments[index] && segments[index].imgStr) ? segments[index].imgStr : ""
         }));
         if (segments.length === 0) segments = [{ text: 'بدون گزینه', img: null, imgStr: "" }];
-        drawWheel();
+        resizeCanvas();
     }
 
     imageInput.addEventListener('change', function(e) {
@@ -182,7 +192,7 @@
                         }
                         segments = newSegments;
                         namesInput.value = textLines.join('\n');
-                        drawWheel();
+                        resizeCanvas();
                     }
                 };
                 img.src = event.target.result;
@@ -204,7 +214,7 @@
         for (let i = 0; i < numSegments; i++) {
             ctx.beginPath();
             ctx.moveTo(0, 0);
-            ctx.arc(0, 0, radius, i * anglePerSegment, (i + 1) * anglePerSegment);
+            ctx.arc(0, 0, radius - 6, i * anglePerSegment, (i + 1) * anglePerSegment);
             ctx.fillStyle = colors[i % colors.length];
             ctx.fill();
             ctx.lineWidth = 1;
@@ -214,7 +224,10 @@
             ctx.save();
             ctx.rotate(i * anglePerSegment + anglePerSegment / 2);
             ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 14px Tahoma';
+            
+            const fontSize = Math.max(10, Math.floor(radius / 14));
+            ctx.font = `bold ${fontSize}px Tahoma`;
+            
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText('★', radius / 1.4, 0); 
@@ -223,7 +236,6 @@
         ctx.restore();
     }
 
-    // تولید فایل دیتابیس متنی بجای تولید لینک طویل مگابایتی
     downloadDbBtn.addEventListener('click', () => {
         const exportData = {
             bg: bgDataStr,
@@ -237,7 +249,6 @@
         a.click();
     });
 
-    // خواندن دیتای حجیم صدوپنجاه عکس بدون افت سرعت از روی هاست گیت‌هاب
     function fetchExternalData() {
         fetch('data.json?cb=' + new Date().getTime())
         .then(response => response.json())
@@ -254,7 +265,7 @@
                 items.forEach((obj, idx) => {
                     segments[idx] = { text: obj.text, img: null, imgStr: "" };
                 });
-                drawWheel();
+                resizeCanvas();
                 return;
             }
 
@@ -268,7 +279,7 @@
                             items.forEach((obj, idx) => {
                                 if (!segments[idx]) segments[idx] = { text: obj.text, img: null, imgStr: "" };
                             });
-                            drawWheel();
+                            resizeCanvas();
                         }
                     };
                     img.src = item.imgStr;
