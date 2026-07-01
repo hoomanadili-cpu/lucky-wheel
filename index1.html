@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سیستم مدیریت چرخ‌های شانس رازآلود</title>
+    <style>
+        body { 
+            font-family: Tahoma, sans-serif; 
+            background-color: #f1f2f6; 
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+        }
+        .container { display: flex; background: rgba(25, 25, 25, 0.85); backdrop-filter: blur(8px); color: white; padding: 25px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); gap: 30px; max-width: 900px; width: 100%; border: 1px solid rgba(255,255,255,0.1); justify-content: center; }
+        .wheel-area { position: relative; display: flex; justify-content: center; align-items: center; flex: 1; }
+        .control-area { width: 320px; display: flex; flex-direction: column; gap: 12px; max-height: 85vh; overflow-y: auto; padding-left: 5px; }
+        
+        .hidden { display: none !important; }
+        
+        label { font-size: 13px; font-weight: bold; color: #dfe4ea; margin-bottom: -5px; }
+        textarea { width: 100%; height: 65px; border: 2px solid #57606f; background: #2f3542; color: white; border-radius: 8px; padding: 10px; box-sizing: border-box; resize: none; font-size: 13px; outline: none; }
+        
+        .file-box { display: flex; flex-direction: column; gap: 4px; }
+        input[type="file"] { border: 2px dashed #57606f; padding: 6px; border-radius: 8px; cursor: pointer; background-color: #2f3542; color: #ced6e0; font-size: 12px; width: 100%; box-sizing: border-box; }
+        
+        /* بخش مدیریت چرخ‌ها */
+        .wheels-manager { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; gap: 8px; }
+        select { background: #2f3542; color: white; padding: 8px; border: 1px solid #57606f; border-radius: 6px; width: 100%; outline: none; font-family: Tahoma; }
+        .mgr-btns { display: flex; gap: 5px; }
+        .mgr-btns button { flex: 1; padding: 8px; font-size: 12px; margin: 0; }
+        
+        button { background-color: #1e90ff; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 15px; cursor: pointer; font-weight: bold; transition: 0.2s; margin-top: 3px; }
+        button:hover { background-color: #3742fa; }
+        .share-btn { background-color: #2ed573; }
+        .share-btn:hover { background-color: #26af5f; }
+        .del-btn { background-color: #ff4757; }
+        .del-btn:hover { background-color: #ff2a3b; }
+        
+        .pointer { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 25px solid #ff4754; z-index: 10; }
+        canvas { border-radius: 50%; box-shadow: 0 6px 20px rgba(0,0,0,0.4); border: 6px solid #ffffff; box-sizing: border-box; cursor: pointer; }
+
+        /* پاپ‌آپ برنده */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.75); display: flex; justify-content: center; align-items: center; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-box { background: white; padding: 30px; border-radius: 16px; text-align: center; max-width: 500px; width: 90%; box-shadow: 0 10px 35px rgba(0,0,0,0.5); transform: scale(0.8); transition: transform 0.3s ease; color: #333; }
+        .modal-overlay.active .modal-box { transform: scale(1); }
+        .modal-box h2 { margin-top: 0; color: #2ecc71; font-size: 24px; }
+        .winner-img-container { margin: 20px 0; display: flex; justify-content: center; }
+        .winner-img-container img { width: 300px; height: 300px; border-radius: 16px; object-fit: contain; background: #f8f9fa; border: 4px solid #2ecc71; box-shadow: 0 6px 16px rgba(0,0,0,0.15); }
+        .winner-text { font-size: 22px; font-weight: bold; margin-bottom: 20px; color: #2f3542; }
+        .close-btn { background-color: #2ecc71; color: white; padding: 12px 25px; border-radius: 8px; border: none; font-size: 16px; cursor: pointer; font-weight: bold; width: 100%; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="wheel-area">
+        <div class="pointer"></div>
+        <canvas id="wheelCanvas" width="400" height="400"></canvas>
+    </div>
+
+    <div class="control-area" id="adminPanel">
+        <h2 style="margin: 0 0 5px 0; font-size: 18px; color: #1e90ff;">مدیریت چرخ‌ها و تنظیمات</h2>
+        
+        <div class="wheels-manager">
+            <label>انتخاب چرخ فعلی:</label>
+            <select id="wheelSelect"></select>
+            <div class="mgr-btns">
+                <button id="newWheelBtn">➕ چرخ جدید</button>
+                <button id="deleteWheelBtn" class="del-btn">🗑️ حذف چرخ</button>
+            </div>
+        </div>
+
+        <label>۱. عنوان گزینه‌ها (خط به خط):</label>
+        <textarea id="namesInput" placeholder="گزینه ۱"></textarea>
+
+        <div class="file-box">
+            <label>۲. تصاویر گزینه‌ها (دسته‌جمعی):</label>
+            <input type="file" id="imageInput" multiple accept="image/*">
+        </div>
+
+        <div class="file-box">
+            <label>۳. تصویر پس‌زمینه (بک‌گراند):</label>
+            <input type="file" id="bgInput" accept="image/*">
+        </div>
+
+        <button class="share-btn" id="generateLinkBtn">🔗 تولید لینک کاربر اختصاصی</button>
+        <button id="spinBtn">تست چرخاندن 🎡</button>
+    </div>
+</div>
+
+<div class="modal-overlay" id="winnerModal">
+    <div class="modal-box">
+        <h2>🎉 برنده انتخاب شد! 🎉</h2>
+        <div class="winner-img-container" id="winnerImgContainer"></div>
+        <div class="winner-text" id="winnerText">نام برنده</div>
+        <button class="close-btn" id="closeModalBtn">عالیه!</button>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('wheelCanvas');
+    const ctx = canvas.getContext('2d');
+    const namesInput = document.getElementById('namesInput');
+    const imageInput = document.getElementById('imageInput');
+    const bgInput = document.getElementById('bgInput');
+    const spinBtn = document.getElementById('spinBtn');
+    const generateLinkBtn = document.getElementById('generateLinkBtn');
+    const adminPanel = document.getElementById('adminPanel');
+    const wheelSelect = document.getElementById('wheelSelect');
+    const newWheelBtn = document.getElementById('newWheelBtn');
+    const deleteWheelBtn = document.getElementById('deleteWheelBtn');
+    
+    const winnerModal = document.getElementById('winnerModal');
+    const winnerImgContainer = document.getElementById('winnerImgContainer');
+    const winnerText = document.getElementById('winnerText');
+    const closeModalBtn = document.getElementById('closeModalBtn');
+
+    let segments = []; 
+    let currentRotation = 0;
+    let isSpinning = false;
+    let bgDataStr = "";
+    
+    // لود کل چرخ‌ها از سیستم LocalStorage مرورگر ادمین
+    let allWheels = JSON.parse(localStorage.getItem('saved_wheels')) || {
+        "چرخ پیش‌فرض ۱": { textData: "گزینه ۱\nگزینه ۲\nگزینه ۳", bg: "", items: [] }
+    };
+    let activeWheelName = localStorage.getItem('active_wheel_name') || Object.keys(allWheels)[0];
+
+    const colors = ['#ff4757', '#2ed573', '#2f3542', '#1e90ff', '#ffa502', '#747d8c', '#9b59b6', '#34495e'];
+
+    // فاز تشخیص کاربر / ادمین
+    const urlParams = new URLSearchParams(window.location.search);
+    const dataParam = urlParams.get('data');
+
+    if (dataParam) {
+        adminPanel.classList.add('hidden');
+        loadDataFromUrl(dataParam);
+    } else {
+        initAdminManager();
+    }
+
+    function initAdminManager() {
+        renderSelectOptions();
+        loadWheelData(activeWheelName);
+
+        wheelSelect.addEventListener('change', (e) => {
+            saveCurrentWheelState();
+            activeWheelName = e.target.value;
+            localStorage.setItem('active_wheel_name', activeWheelName);
+            loadWheelData(activeWheelName);
+        });
+
+        newWheelBtn.addEventListener('click', () => {
+            const name = prompt("نام چرخ جدید را وارد کنید:");
+            if (!name || name.trim() === "") return;
+            if (allWheels[name]) { alert("این نام تکراری است!"); return; }
+            
+            saveCurrentWheelState();
+            allWheels[name] = { textData: "آیتم الف\nآیتم ب", bg: "", items: [] };
+            activeWheelName = name;
+            localStorage.setItem('active_wheel_name', activeWheelName);
+            renderSelectOptions();
+            loadWheelData(activeWheelName);
+        });
+
+        deleteWheelBtn.addEventListener('click', () => {
+            const keys = Object.keys(allWheels);
+            if (keys.length <= 1) { alert("امکان حذف تنها چرخ موجود وجود ندارد!"); return; }
+            if (!confirm(`آیا از حذف چرخ "${activeWheelName}" مطمئن هستید؟`)) return;
+
+            delete allWheels[activeWheelName];
+            activeWheelName = Object.keys(allWheels)[0];
+            localStorage.setItem('active_wheel_name', activeWheelName);
+            renderSelectOptions();
+            loadWheelData(activeWheelName);
+        });
+
+        bgInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    bgDataStr = event.target.result;
+                    document.body.style.backgroundImage = `url('${bgDataStr}')`;
+                    saveCurrentWheelState();
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        namesInput.addEventListener('input', () => {
+            updateSegmentsFromText();
+            saveCurrentWheelState();
+        });
+    }
+
+    function renderSelectOptions() {
+        wheelSelect.innerHTML = '';
+        Object.keys(allWheels).forEach(name => {
+            const opt = document.createElement('option');
+            opt.value = name;
+            opt.textContent = name;
+            if (name === activeWheelName) opt.selected = true;
+            wheelSelect.appendChild(opt);
+        });
+    }
+
+    function loadWheelData(name) {
+        const data = allWheels[name];
+        namesInput.value = data.textData || "";
+        bgDataStr = data.bg || "";
+        document.body.style.backgroundImage = bgDataStr ? `url('${bgDataStr}')` : "none";
+        
+        segments = [];
+        if (data.items && data.items.length > 0) {
+            let loadedCount = 0;
+            const validImageItems = data.items.filter(i => i.imgStr);
+            
+            if (validImageItems.length === 0) {
+                buildSegmentsStructure(data.items, []);
+            } else {
+                let tempImages = {};
+                data.items.forEach((item, idx) => {
+                    if (item.imgStr) {
+                        const img = new Image();
+                        img.onload = function() {
+                            tempImages[idx] = img;
+                            loadedCount++;
+                            if (loadedCount === validImageItems.length) {
+                                buildSegmentsStructure(data.items, tempImages);
+                            }
+                        };
+                        img.src = item.imgStr;
+                    }
+                });
+            }
+        } else {
+            updateSegmentsFromText();
+        }
+    }
+
+    function buildSegmentsStructure(rawItems, loadedImages) {
+        segments = rawItems.map((item, idx) => ({
+            text: item.text,
+            img: loadedImages[idx] || null,
+            imgStr: item.imgStr || ""
+        }));
+        drawWheel();
+    }
+
+    function saveCurrentWheelState() {
+        if (dataParam) return; 
+        allWheels[activeWheelName] = {
+            textData: namesInput.value,
+            bg: bgDataStr,
+            items: segments.map(s => ({ text: s.text, imgStr: s.imgStr || "" }))
+        };
+        localStorage.setItem('saved_wheels', JSON.stringify(allWheels));
+    }
+
+    function updateSegmentsFromText() {
+        const lines = namesInput.value.split('\n').map(line => line.trim()).filter(line => line !== '');
+        segments = lines.map((line, index) => ({
+            text: line,
+            img: (segments[index] && segments[index].img) ? segments[index].img : null,
+            imgStr: (segments[index] && segments[index].imgStr) ? segments[index].imgStr : ""
+        }));
+        if (segments.length === 0) segments = [{ text: 'بدون گزینه', img: null, imgStr: "" }];
+        drawWheel();
+    }
+
+    imageInput.addEventListener('change', function(e) {
+        const files = e.target.files;
+        if (files.length === 0) return;
+        let loadedCount = 0;
+        let tempImages = [];
+        let tempStrings = [];
+
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    tempImages[i] = img;
+                    tempStrings[i] = event.target.result;
+                    loadedCount++;
+                    
+                    if (loadedCount === files.length) {
+                        const maxItems = Math.max(tempImages.length, segments.length);
+                        const newSegments = [];
+                        const textLines = [];
+
+                        for (let j = 0; j < maxItems; j++) {
+                            let currentText = (segments[j] && segments[j].text) ? segments[j].text : `آیتم ${j + 1}`;
+                            newSegments.push({
+                                text: currentText,
+                                img: tempImages[j] || (segments[j] ? segments[j].img : null),
+                                imgStr: tempStrings[j] || (segments[j] ? segments[j].imgStr : "")
+                            });
+                            textLines.push(currentText);
+                        }
+                        segments = newSegments;
+                        namesInput.value = textLines.join('\n');
+                        drawWheel();
+                        saveCurrentWheelState();
+                    }
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    function drawWheel() {
+        const numSegments = segments.length;
+        const anglePerSegment = (2 * Math.PI) / numSegments;
+        const radius = canvas.width / 2;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.save();
+        ctx.translate(radius, radius);
+        ctx.rotate(currentRotation);
+
+        for (let i = 0; i < numSegments; i++) {
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.arc(0, 0, radius, i * anglePerSegment, (i + 1) * anglePerSegment);
+            ctx.fillStyle = colors[i % colors.length];
+            ctx.fill();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#ffffff';
+            ctx.stroke();
+
+            ctx.save();
+            ctx.rotate(i * anglePerSegment + anglePerSegment / 2);
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 18px Tahoma';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('★', radius / 1.5, 0); // افکت ستاره مینیمال
+            ctx.restore();
+        }
+        ctx.restore();
+    }
+
+    generateLinkBtn.addEventListener('click', () => {
+        saveCurrentWheelState();
+        const exportData = {
+            bg: bgDataStr,
+            items: segments.map(s => ({ text: s.text, imgStr: s.imgStr }))
+        };
+        const base64Data = btoa(unescape(encodeURIComponent(JSON.stringify(exportData))));
+        
+        // تولید لینک داینامیک بر اساس آدرس هر جایی که سایت آپلود شده باشد
+        const finalUrl = `${window.location.origin}${window.location.pathname}?data=${base64Data}`;
+        
+        navigator.clipboard.writeText(finalUrl);
+        alert(`🔗 لینک چرخ "${activeWheelName}" کپی شد!\nکاربران این لینک فقط چرخ را با بک‌گراند اختصاصی‌اش می‌بینند.`);
+    });
+
+    function loadDataFromUrl(base64Data) {
+        try {
+            const decoded = JSON.parse(decodeURIComponent(escape(atob(base64Data))));
+            if (decoded.bg) document.body.style.backgroundImage = `url('${decoded.bg}')`;
+            
+            let loadedCount = 0;
+            const items = decoded.items;
+            segments = [];
+
+            items.forEach((item, index) => {
+                if (item.imgStr) {
+                    const img = new Image();
+                    img.onload = function() {
+                        segments[index] = { text: item.text, img: img, imgStr: item.imgStr };
+                        loadedCount++;
+                        if (loadedCount === items.filter(i => i.imgStr).length) {
+                            items.forEach((obj, idx) => {
+                                if (!segments[idx]) segments[idx] = { text: obj.text, img: null, imgStr: "" };
+                            });
+                            drawWheel();
+                        }
+                    };
+                    img.src = item.imgStr;
+                } else {
+                    segments[index] = { text: item.text, img: null, imgStr: "" };
+                }
+            });
+
+            if (items.filter(i => i.imgStr).length === 0) drawWheel();
+        } catch (e) {
+            alert("لینک نامعتبر یا خراب است!");
+        }
+    }
+
+    function showWinnerModal(winnerItem) {
+        winnerText.textContent = winnerItem.text;
+        winnerImgContainer.innerHTML = '';
+        if (winnerItem.img) {
+            const newImg = document.createElement('img');
+            newImg.src = winnerItem.img.src;
+            winnerImgContainer.appendChild(newImg);
+        } else {
+            winnerImgContainer.innerHTML = '<span style="font-size: 70px;">🏆</span>';
+        }
+        winnerModal.classList.add('active');
+    }
+
+    closeModalBtn.addEventListener('click', () => winnerModal.classList.remove('active'));
+    canvas.addEventListener('click', spin);
+    spinBtn.addEventListener('click', spin);
+
+    function spin() {
+        if (isSpinning || segments.length === 0) return;
+        isSpinning = true;
+
+        const spinDuration = 4000;
+        const startTimestamp = performance.now();
+        const startRotation = currentRotation;
+        const targetRotation = startRotation + (Math.random() * 5 + 5) * 2 * Math.PI;
+
+        function animate(timestamp) {
+            const elapsed = timestamp - startTimestamp;
+            const progress = Math.min(elapsed / spinDuration, 1);
+            const easeOut = 1 - Math.pow(1 - progress, 3);
+            
+            currentRotation = startRotation + (targetRotation - startRotation) * easeOut;
+            drawWheel();
+
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            } else {
+                isSpinning = false;
+                const numSegments = segments.length;
+                const anglePerSegment = (2 * Math.PI) / numSegments;
+                let normalizedRotation = (3 * Math.PI / 2 - currentRotation) % (2 * Math.PI);
+                if (normalizedRotation < 0) normalizedRotation += 2 * Math.PI;
+                const winningIndex = Math.floor(normalizedRotation / anglePerSegment) % numSegments;
+                showWinnerModal(segments[winningIndex]);
+            }
+        }
+        requestAnimationFrame(animate);
+    }
+</script>
+
+</body>
+</html>
