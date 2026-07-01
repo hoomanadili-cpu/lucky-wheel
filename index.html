@@ -3,14 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سیستم پیشرفته چرخ رازآلود - نسخه نامحدود ریسپانسیو</title>
+    <title>سیستم چرخ رازآلود - نسخه عکس روی گردونه</title>
     <style>
         body { 
             font-family: Tahoma, sans-serif; 
             background-color: #f1f2f6; 
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
             display: flex; 
             justify-content: center; 
             align-items: center; 
@@ -20,48 +17,19 @@
             box-sizing: border-box;
         }
         .container { display: flex; background: rgba(25, 25, 25, 0.85); backdrop-filter: blur(8px); color: white; padding: 25px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); gap: 30px; max-width: 900px; width: 100%; border: 1px solid rgba(255,255,255,0.1); justify-content: center; flex-wrap: wrap; }
-        
-        /* تغییر کلیدی اینجاست: چرخ در موبایل بر اساس عرض صفحه کوچک می‌شود */
-        .wheel-area { 
-            position: relative; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            flex: 1; 
-            min-width: 280px; 
-            max-width: 100%;
-        }
+        .wheel-area { position: relative; display: flex; justify-content: center; align-items: center; flex: 1; min-width: 280px; max-width: 100%; }
         .control-area { width: 320px; display: flex; flex-direction: column; gap: 12px; max-height: 85vh; overflow-y: auto; padding-left: 5px; min-width: 280px; }
-        
         .hidden { display: none !important; }
-        
         label { font-size: 13px; font-weight: bold; color: #dfe4ea; margin-bottom: -5px; }
         textarea { width: 100%; height: 65px; border: 2px solid #57606f; background: #2f3542; color: white; border-radius: 8px; padding: 10px; box-sizing: border-box; resize: none; font-size: 13px; outline: none; }
-        
         .file-box { display: flex; flex-direction: column; gap: 4px; }
         input[type="file"] { border: 2px dashed #1e90ff; padding: 8px; border-radius: 8px; cursor: pointer; background-color: #2f3542; color: #ced6e0; font-size: 12px; width: 100%; box-sizing: border-box; }
-        
         button { background-color: #1e90ff; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: bold; transition: 0.2s; margin-top: 3px; }
         button:hover { background-color: #3742fa; }
         .download-btn { background-color: #2ed573; }
         .download-btn:hover { background-color: #26af5f; }
-        
         .pointer { position: absolute; top: -5px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 25px solid #ff4754; z-index: 10; }
-        
-        /* ریسپانسیو کردن مستقیم المنت بوم چرخ با CSS بدون وابستگی به کش جاوااسکریپت */
-        canvas { 
-            border-radius: 50%; 
-            box-shadow: 0 6px 20px rgba(0,0,0,0.4); 
-            border: 6px solid #ffffff; 
-            box-sizing: border-box; 
-            cursor: pointer; 
-            display: block; 
-            margin: 0 auto; 
-            max-width: 100%; 
-            height: auto !important; 
-        }
-
-        /* پاپ‌آپ برنده */
+        canvas { border-radius: 50%; box-shadow: 0 6px 20px rgba(0,0,0,0.4); border: 6px solid #ffffff; box-sizing: border-box; cursor: pointer; display: block; margin: 0 auto; max-width: 100%; height: auto !important; }
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.75); display: flex; justify-content: center; align-items: center; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
         .modal-overlay.active { opacity: 1; pointer-events: auto; }
         .modal-box { background: white; padding: 30px; border-radius: 16px; text-align: center; max-width: 500px; width: 90%; box-shadow: 0 10px 35px rgba(0,0,0,0.5); transform: scale(0.8); transition: transform 0.3s ease; color: #333; }
@@ -80,33 +48,27 @@
         <div class="pointer"></div>
         <canvas id="wheelCanvas" width="400" height="400"></canvas>
     </div>
-
     <div class="control-area" id="adminPanel">
-        <h2 style="margin: 0 0 5px 0; font-size: 18px; color: #1e90ff;">تنظیمات ادمین (نسخه ۱۵۰+ عکس)</h2>
-        
+        <h2 style="margin: 0 0 5px 0; font-size: 18px; color: #1e90ff;">تنظیمات ادمین (نسخه پوسته گردونه)</h2>
         <label>۱. عنوان گزینه‌ها (خط به خط):</label>
         <textarea id="namesInput" placeholder="گزینه ۱">آیتم ۱&#10;آیتم ۲&#10;آیتم ۳</textarea>
-
         <div class="file-box">
-            <label>۲. آپلود تصاویر انبوه (بدون محدودیت):</label>
+            <label>۲. آپلود تصاویر انبوه برنده (پاپ‌آپ):</label>
             <input type="file" id="imageInput" multiple accept="image/*">
         </div>
-
         <div class="file-box">
-            <label>۳. تصویر پس‌زمینه (بک‌گراند):</label>
+            <label>۳. تصویر روی بدنه چرخ (چرخان):</label>
             <input type="file" id="bgInput" accept="image/*">
         </div>
-
         <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); width: 100%; margin: 5px 0;">
         <button class="download-btn" id="downloadDbBtn">📥 ۱. دانلود فایل دیتابیس چرخ</button>
-        <p style="font-size: 11px; color: #aaa; margin: 0; text-align: justify;">فایل دانلود شده را با نام <b>data.json</b> در کنار همین فایل در گیت‌هاب آپلود کنید تا کاربران مستقیماً آن را لود کنند.</p>
         <button id="spinBtn">تست چرخاندن 🎡</button>
     </div>
 </div>
 
 <div class="modal-overlay" id="winnerModal">
     <div class="modal-box">
-        <h2>🎉 اجرا کن! 🎉</h2>
+        <h2>🎉 برنده انتخاب شد! 🎉</h2>
         <div class="winner-img-container" id="winnerImgContainer"></div>
         <div class="winner-text" id="winnerText">نام برنده</div>
         <button class="close-btn" id="closeModalBtn">عالیه!</button>
@@ -122,7 +84,6 @@
     const spinBtn = document.getElementById('spinBtn');
     const downloadDbBtn = document.getElementById('downloadDbBtn');
     const adminPanel = document.getElementById('adminPanel');
-    
     const winnerModal = document.getElementById('winnerModal');
     const winnerImgContainer = document.getElementById('winnerImgContainer');
     const winnerText = document.getElementById('winnerText');
@@ -132,7 +93,7 @@
     let currentRotation = 0;
     let isSpinning = false;
     let bgDataStr = "";
-    
+    let wheelImage = null; // المان تصویر چرخ
     const colors = ['#ff4757', '#2ed573', '#2f3542', '#1e90ff', '#ffa502', '#747d8c', '#9b59b6', '#34495e'];
 
     const urlParams = new URLSearchParams(window.location.search);
@@ -145,13 +106,18 @@
         updateSegmentsFromText();
     }
 
+    // لود تصویر روی چرخ
     bgInput.addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (file) {
             const reader = new FileReader();
             reader.onload = function(event) {
                 bgDataStr = event.target.result;
-                document.body.style.backgroundImage = `url('${bgDataStr}')`;
+                wheelImage = new Image();
+                wheelImage.onload = function() {
+                    drawWheel();
+                };
+                wheelImage.src = bgDataStr;
             };
             reader.readAsDataURL(file);
         }
@@ -216,25 +182,38 @@
         const radius = canvas.width / 2;
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // بخش اصلی: رندر تصویر روی چرخ و چرخاندن آن
         ctx.save();
         ctx.translate(radius, radius);
         ctx.rotate(currentRotation);
 
-        for (let i = 0; i < numSegments; i++) {
+        if (wheelImage && wheelImage.complete) {
+            // ایجاد یک برش دایره‌ای برای تصویر تا از کادر چرخ بیرون نزند
             ctx.beginPath();
-            ctx.moveTo(0, 0);
-            ctx.arc(0, 0, radius - 6, i * anglePerSegment, (i + 1) * anglePerSegment);
-            ctx.fillStyle = colors[i % colors.length];
-            ctx.fill();
-            ctx.lineWidth = 1;
-            ctx.strokeStyle = '#ffffff';
-            ctx.stroke();
+            ctx.arc(0, 0, radius - 6, 0, 2 * Math.PI);
+            ctx.clip();
+            // رسم تصویر در مرکز چرخ
+            ctx.drawImage(wheelImage, -radius, -radius, canvas.width, canvas.height);
+        } else {
+            // اگر تصویری نبود، چرخ رنگی سنتی رسم می‌شود
+            for (let i = 0; i < numSegments; i++) {
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.arc(0, 0, radius - 6, i * anglePerSegment, (i + 1) * anglePerSegment);
+                ctx.fillStyle = colors[i % colors.length];
+                ctx.fill();
+                ctx.lineWidth = 1;
+                ctx.strokeStyle = '#ffffff';
+                ctx.stroke();
+            }
+        }
 
+        // رسم ستاره‌ها و خطوط راهنما روی تصویر (برای مشخص بودن مرز بخش‌ها)
+        for (let i = 0; i < numSegments; i++) {
             ctx.save();
             ctx.rotate(i * anglePerSegment + anglePerSegment / 2);
             ctx.fillStyle = '#ffffff';
-            
-            // فونت ثابت ۱۴ که با کوچک شدن سی‌اس‌اسی چرخ، خودش هم فیت می‌شود
             ctx.font = 'bold 14px Tahoma';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
@@ -261,12 +240,18 @@
         fetch('data.json?cb=' + new Date().getTime())
         .then(response => response.json())
         .then(decoded => {
-            if (decoded.bg) document.body.style.backgroundImage = `url('${decoded.bg}')`;
+            if (decoded.bg) {
+                bgDataStr = decoded.bg;
+                wheelImage = new Image();
+                wheelImage.onload = function() {
+                    drawWheel();
+                };
+                wheelImage.src = bgDataStr;
+            }
             
             let loadedCount = 0;
             const items = decoded.items;
             segments = [];
-
             const itemsWithImg = items.filter(i => i.imgStr);
 
             if (itemsWithImg.length === 0) {
@@ -297,7 +282,7 @@
             });
         })
         .catch(err => {
-            alert("خطا: فایل data.json در گیت‌هاب پیدا نشد یا فرمت آن اشتباه است.");
+            alert("خطا: فایل data.json پیدا نشد.");
         });
     }
 
