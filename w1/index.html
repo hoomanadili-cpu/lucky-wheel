@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سیستم مدیریت چرخ‌های شانس رازآلود</title>
+    <title>سیستم پیشرفته چرخ رازآلود - نسخه نامحدود</title>
     <style>
         body { 
             font-family: Tahoma, sans-serif; 
@@ -27,20 +27,12 @@
         textarea { width: 100%; height: 65px; border: 2px solid #57606f; background: #2f3542; color: white; border-radius: 8px; padding: 10px; box-sizing: border-box; resize: none; font-size: 13px; outline: none; }
         
         .file-box { display: flex; flex-direction: column; gap: 4px; }
-        input[type="file"] { border: 2px dashed #57606f; padding: 6px; border-radius: 8px; cursor: pointer; background-color: #2f3542; color: #ced6e0; font-size: 12px; width: 100%; box-sizing: border-box; }
+        input[type="file"] { border: 2px dashed #1e90ff; padding: 8px; border-radius: 8px; cursor: pointer; background-color: #2f3542; color: #ced6e0; font-size: 12px; width: 100%; box-sizing: border-box; }
         
-        /* بخش مدیریت چرخ‌ها */
-        .wheels-manager { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; gap: 8px; }
-        select { background: #2f3542; color: white; padding: 8px; border: 1px solid #57606f; border-radius: 6px; width: 100%; outline: none; font-family: Tahoma; }
-        .mgr-btns { display: flex; gap: 5px; }
-        .mgr-btns button { flex: 1; padding: 8px; font-size: 12px; margin: 0; }
-        
-        button { background-color: #1e90ff; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 15px; cursor: pointer; font-weight: bold; transition: 0.2s; margin-top: 3px; }
+        button { background-color: #1e90ff; color: white; border: none; padding: 12px; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: bold; transition: 0.2s; margin-top: 3px; }
         button:hover { background-color: #3742fa; }
-        .share-btn { background-color: #2ed573; }
-        .share-btn:hover { background-color: #26af5f; }
-        .del-btn { background-color: #ff4757; }
-        .del-btn:hover { background-color: #ff2a3b; }
+        .download-btn { background-color: #2ed573; }
+        .download-btn:hover { background-color: #26af5f; }
         
         .pointer { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 25px solid #ff4754; z-index: 10; }
         canvas { border-radius: 50%; box-shadow: 0 6px 20px rgba(0,0,0,0.4); border: 6px solid #ffffff; box-sizing: border-box; cursor: pointer; }
@@ -60,28 +52,21 @@
 <body>
 
 <div class="container">
+    <!-- بخش چرخ -->
     <div class="wheel-area">
         <div class="pointer"></div>
         <canvas id="wheelCanvas" width="400" height="400"></canvas>
     </div>
 
+    <!-- بخش کنترل‌ها (پنل ادمین) -->
     <div class="control-area" id="adminPanel">
-        <h2 style="margin: 0 0 5px 0; font-size: 18px; color: #1e90ff;">مدیریت چرخ‌ها و تنظیمات</h2>
+        <h2 style="margin: 0 0 5px 0; font-size: 18px; color: #1e90ff;">تنظیمات ادمین (نسخه ۱۵۰+ عکس)</h2>
         
-        <div class="wheels-manager">
-            <label>انتخاب چرخ فعلی:</label>
-            <select id="wheelSelect"></select>
-            <div class="mgr-btns">
-                <button id="newWheelBtn">➕ چرخ جدید</button>
-                <button id="deleteWheelBtn" class="del-btn">🗑️ حذف چرخ</button>
-            </div>
-        </div>
-
         <label>۱. عنوان گزینه‌ها (خط به خط):</label>
-        <textarea id="namesInput" placeholder="گزینه ۱"></textarea>
+        <textarea id="namesInput" placeholder="گزینه ۱">آیتم ۱&#10;آیتم ۲&#10;آیتم ۳</textarea>
 
         <div class="file-box">
-            <label>۲. تصاویر گزینه‌ها (دسته‌جمعی):</label>
+            <label>۲. آپلود تصاویر انبوه (بدون محدودیت):</label>
             <input type="file" id="imageInput" multiple accept="image/*">
         </div>
 
@@ -90,7 +75,9 @@
             <input type="file" id="bgInput" accept="image/*">
         </div>
 
-        <button class="share-btn" id="generateLinkBtn">🔗 تولید لینک کاربر اختصاصی</button>
+        <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); width: 100%; margin: 5px 0;">
+        <button class="download-btn" id="downloadDbBtn">📥 ۱. دانلود فایل دیتابیس چرخ</button>
+        <p style="font-size: 11px; color: #aaa; margin: 0; text-align: justify;">فایل دانلود شده را با نام <b>data.json</b> در کنار همین فایل در گیت‌هاب آپلود کنید تا کاربران مستقیماً آن را لود کنند.</p>
         <button id="spinBtn">تست چرخاندن 🎡</button>
     </div>
 </div>
@@ -111,11 +98,8 @@
     const imageInput = document.getElementById('imageInput');
     const bgInput = document.getElementById('bgInput');
     const spinBtn = document.getElementById('spinBtn');
-    const generateLinkBtn = document.getElementById('generateLinkBtn');
+    const downloadDbBtn = document.getElementById('downloadDbBtn');
     const adminPanel = document.getElementById('adminPanel');
-    const wheelSelect = document.getElementById('wheelSelect');
-    const newWheelBtn = document.getElementById('newWheelBtn');
-    const deleteWheelBtn = document.getElementById('deleteWheelBtn');
     
     const winnerModal = document.getElementById('winnerModal');
     const winnerImgContainer = document.getElementById('winnerImgContainer');
@@ -127,143 +111,32 @@
     let isSpinning = false;
     let bgDataStr = "";
     
-    // لود کل چرخ‌ها از سیستم LocalStorage مرورگر ادمین
-    let allWheels = JSON.parse(localStorage.getItem('saved_wheels')) || {
-        "چرخ پیش‌فرض ۱": { textData: "گزینه ۱\nگزینه ۲\nگزینه ۳", bg: "", items: [] }
-    };
-    let activeWheelName = localStorage.getItem('active_wheel_name') || Object.keys(allWheels)[0];
-
     const colors = ['#ff4757', '#2ed573', '#2f3542', '#1e90ff', '#ffa502', '#747d8c', '#9b59b6', '#34495e'];
 
-    // فاز تشخیص کاربر / ادمین
+    // فاز هوشمند: اگر در URL حالت کاربر نبود، چک می‌کند آیا فایل دیتا روی هاست هست یا نه
     const urlParams = new URLSearchParams(window.location.search);
-    const dataParam = urlParams.get('data');
+    const modeParam = urlParams.get('mode');
 
-    if (dataParam) {
+    if (modeParam === 'user') {
+        // حالت کاربر نهایی: پنل کاملاً غیب می‌شود و دیتا از فایل سرور خوانده می‌شود
         adminPanel.classList.add('hidden');
-        loadDataFromUrl(dataParam);
+        fetchExternalData();
     } else {
-        initAdminManager();
+        updateSegmentsFromText();
     }
 
-    function initAdminManager() {
-        renderSelectOptions();
-        loadWheelData(activeWheelName);
-
-        wheelSelect.addEventListener('change', (e) => {
-            saveCurrentWheelState();
-            activeWheelName = e.target.value;
-            localStorage.setItem('active_wheel_name', activeWheelName);
-            loadWheelData(activeWheelName);
-        });
-
-        newWheelBtn.addEventListener('click', () => {
-            const name = prompt("نام چرخ جدید را وارد کنید:");
-            if (!name || name.trim() === "") return;
-            if (allWheels[name]) { alert("این نام تکراری است!"); return; }
-            
-            saveCurrentWheelState();
-            allWheels[name] = { textData: "آیتم الف\nآیتم ب", bg: "", items: [] };
-            activeWheelName = name;
-            localStorage.setItem('active_wheel_name', activeWheelName);
-            renderSelectOptions();
-            loadWheelData(activeWheelName);
-        });
-
-        deleteWheelBtn.addEventListener('click', () => {
-            const keys = Object.keys(allWheels);
-            if (keys.length <= 1) { alert("امکان حذف تنها چرخ موجود وجود ندارد!"); return; }
-            if (!confirm(`آیا از حذف چرخ "${activeWheelName}" مطمئن هستید؟`)) return;
-
-            delete allWheels[activeWheelName];
-            activeWheelName = Object.keys(allWheels)[0];
-            localStorage.setItem('active_wheel_name', activeWheelName);
-            renderSelectOptions();
-            loadWheelData(activeWheelName);
-        });
-
-        bgInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    bgDataStr = event.target.result;
-                    document.body.style.backgroundImage = `url('${bgDataStr}')`;
-                    saveCurrentWheelState();
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-
-        namesInput.addEventListener('input', () => {
-            updateSegmentsFromText();
-            saveCurrentWheelState();
-        });
-    }
-
-    function renderSelectOptions() {
-        wheelSelect.innerHTML = '';
-        Object.keys(allWheels).forEach(name => {
-            const opt = document.createElement('option');
-            opt.value = name;
-            opt.textContent = name;
-            if (name === activeWheelName) opt.selected = true;
-            wheelSelect.appendChild(opt);
-        });
-    }
-
-    function loadWheelData(name) {
-        const data = allWheels[name];
-        namesInput.value = data.textData || "";
-        bgDataStr = data.bg || "";
-        document.body.style.backgroundImage = bgDataStr ? `url('${bgDataStr}')` : "none";
-        
-        segments = [];
-        if (data.items && data.items.length > 0) {
-            let loadedCount = 0;
-            const validImageItems = data.items.filter(i => i.imgStr);
-            
-            if (validImageItems.length === 0) {
-                buildSegmentsStructure(data.items, []);
-            } else {
-                let tempImages = {};
-                data.items.forEach((item, idx) => {
-                    if (item.imgStr) {
-                        const img = new Image();
-                        img.onload = function() {
-                            tempImages[idx] = img;
-                            loadedCount++;
-                            if (loadedCount === validImageItems.length) {
-                                buildSegmentsStructure(data.items, tempImages);
-                            }
-                        };
-                        img.src = item.imgStr;
-                    }
-                });
-            }
-        } else {
-            updateSegmentsFromText();
+    // لود خودکار بک‌گراند ادمین
+    bgInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                bgDataStr = event.target.result;
+                document.body.style.backgroundImage = `url('${bgDataStr}')`;
+            };
+            reader.readAsDataURL(file);
         }
-    }
-
-    function buildSegmentsStructure(rawItems, loadedImages) {
-        segments = rawItems.map((item, idx) => ({
-            text: item.text,
-            img: loadedImages[idx] || null,
-            imgStr: item.imgStr || ""
-        }));
-        drawWheel();
-    }
-
-    function saveCurrentWheelState() {
-        if (dataParam) return; 
-        allWheels[activeWheelName] = {
-            textData: namesInput.value,
-            bg: bgDataStr,
-            items: segments.map(s => ({ text: s.text, imgStr: s.imgStr || "" }))
-        };
-        localStorage.setItem('saved_wheels', JSON.stringify(allWheels));
-    }
+    });
 
     function updateSegmentsFromText() {
         const lines = namesInput.value.split('\n').map(line => line.trim()).filter(line => line !== '');
@@ -310,7 +183,6 @@
                         segments = newSegments;
                         namesInput.value = textLines.join('\n');
                         drawWheel();
-                        saveCurrentWheelState();
                     }
                 };
                 img.src = event.target.result;
@@ -335,45 +207,56 @@
             ctx.arc(0, 0, radius, i * anglePerSegment, (i + 1) * anglePerSegment);
             ctx.fillStyle = colors[i % colors.length];
             ctx.fill();
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 1;
             ctx.strokeStyle = '#ffffff';
             ctx.stroke();
 
             ctx.save();
             ctx.rotate(i * anglePerSegment + anglePerSegment / 2);
             ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 18px Tahoma';
+            ctx.font = 'bold 14px Tahoma';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.fillText('★', radius / 1.5, 0); // افکت ستاره مینیمال
+            ctx.fillText('★', radius / 1.4, 0); 
             ctx.restore();
         }
         ctx.restore();
     }
 
-    generateLinkBtn.addEventListener('click', () => {
-        saveCurrentWheelState();
+    // تولید فایل دیتابیس متنی بجای تولید لینک طویل مگابایتی
+    downloadDbBtn.addEventListener('click', () => {
         const exportData = {
             bg: bgDataStr,
             items: segments.map(s => ({ text: s.text, imgStr: s.imgStr }))
         };
-        const base64Data = btoa(unescape(encodeURIComponent(JSON.stringify(exportData))));
-        
-        // تولید لینک داینامیک بر اساس آدرس هر جایی که سایت آپلود شده باشد
-        const finalUrl = `${window.location.origin}${window.location.pathname}?data=${base64Data}`;
-        
-        navigator.clipboard.writeText(finalUrl);
-        alert(`🔗 لینک چرخ "${activeWheelName}" کپی شد!\nکاربران این لینک فقط چرخ را با بک‌گراند اختصاصی‌اش می‌بینند.`);
+        const blob = new Blob([JSON.stringify(exportData)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = "data.json";
+        a.click();
     });
 
-    function loadDataFromUrl(base64Data) {
-        try {
-            const decoded = JSON.parse(decodeURIComponent(escape(atob(base64Data))));
+    // خواندن دیتای حجیم صدوپنجاه عکس بدون افت سرعت از روی هاست گیت‌هاب
+    function fetchExternalData() {
+        fetch('data.json?cb=' + new Date().getTime())
+        .then(response => response.json())
+        .then(decoded => {
             if (decoded.bg) document.body.style.backgroundImage = `url('${decoded.bg}')`;
             
             let loadedCount = 0;
             const items = decoded.items;
             segments = [];
+
+            const itemsWithImg = items.filter(i => i.imgStr);
+
+            if (itemsWithImg.length === 0) {
+                items.forEach((obj, idx) => {
+                    segments[idx] = { text: obj.text, img: null, imgStr: "" };
+                });
+                drawWheel();
+                return;
+            }
 
             items.forEach((item, index) => {
                 if (item.imgStr) {
@@ -381,7 +264,7 @@
                     img.onload = function() {
                         segments[index] = { text: item.text, img: img, imgStr: item.imgStr };
                         loadedCount++;
-                        if (loadedCount === items.filter(i => i.imgStr).length) {
+                        if (loadedCount === itemsWithImg.length) {
                             items.forEach((obj, idx) => {
                                 if (!segments[idx]) segments[idx] = { text: obj.text, img: null, imgStr: "" };
                             });
@@ -390,14 +273,13 @@
                     };
                     img.src = item.imgStr;
                 } else {
-                    segments[index] = { text: item.text, img: null, imgStr: "" };
+                    if (!segments[index]) segments[index] = { text: item.text, img: null, imgStr: "" };
                 }
             });
-
-            if (items.filter(i => i.imgStr).length === 0) drawWheel();
-        } catch (e) {
-            alert("لینک نامعتبر یا خراب است!");
-        }
+        })
+        .catch(err => {
+            alert("خطا: فایل data.json در گیت‌هاب پیدا نشد یا فرمت آن اشتباه است.");
+        });
     }
 
     function showWinnerModal(winnerItem) {
@@ -421,15 +303,15 @@
         if (isSpinning || segments.length === 0) return;
         isSpinning = true;
 
-        const spinDuration = 4000;
+        const spinDuration = 5000;
         const startTimestamp = performance.now();
         const startRotation = currentRotation;
-        const targetRotation = startRotation + (Math.random() * 5 + 5) * 2 * Math.PI;
+        const targetRotation = startRotation + (Math.random() * 5 + 7) * 2 * Math.PI;
 
         function animate(timestamp) {
             const elapsed = timestamp - startTimestamp;
             const progress = Math.min(elapsed / spinDuration, 1);
-            const easeOut = 1 - Math.pow(1 - progress, 3);
+            const easeOut = 1 - Math.pow(1 - progress, 4);
             
             currentRotation = startRotation + (targetRotation - startRotation) * easeOut;
             drawWheel();
@@ -448,6 +330,7 @@
         }
         requestAnimationFrame(animate);
     }
+    namesInput.addEventListener('input', updateSegmentsFromText);
 </script>
 
 </body>
