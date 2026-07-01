@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سیستم چرخ رازآلود - نسخه عکس روی گردونه</title>
+    <title>سیستم چرخ رازآلود - نسخه فقط عکس خالص</title>
     <style>
         body { 
             font-family: Tahoma, sans-serif; 
@@ -49,7 +49,7 @@
         <canvas id="wheelCanvas" width="400" height="400"></canvas>
     </div>
     <div class="control-area" id="adminPanel">
-        <h2 style="margin: 0 0 5px 0; font-size: 18px; color: #1e90ff;">تنظیمات ادمین (نسخه پوسته گردونه)</h2>
+        <h2 style="margin: 0 0 5px 0; font-size: 18px; color: #1e90ff;">تنظیمات ادمین (نسخه عکس خالص)</h2>
         <label>۱. عنوان گزینه‌ها (خط به خط):</label>
         <textarea id="namesInput" placeholder="گزینه ۱">آیتم ۱&#10;آیتم ۲&#10;آیتم ۳</textarea>
         <div class="file-box">
@@ -57,7 +57,7 @@
             <input type="file" id="imageInput" multiple accept="image/*">
         </div>
         <div class="file-box">
-            <label>۳. تصویر روی بدنه چرخ (چرخان):</label>
+            <label>۳. تصویر روی بدنه چرخ (بدون هیچ علامت اضافی):</label>
             <input type="file" id="bgInput" accept="image/*">
         </div>
         <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); width: 100%; margin: 5px 0;">
@@ -93,7 +93,7 @@
     let currentRotation = 0;
     let isSpinning = false;
     let bgDataStr = "";
-    let wheelImage = null; // المان تصویر چرخ
+    let wheelImage = null; 
     const colors = ['#ff4757', '#2ed573', '#2f3542', '#1e90ff', '#ffa502', '#747d8c', '#9b59b6', '#34495e'];
 
     const urlParams = new URLSearchParams(window.location.search);
@@ -106,7 +106,6 @@
         updateSegmentsFromText();
     }
 
-    // لود تصویر روی چرخ
     bgInput.addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (file) {
@@ -183,20 +182,19 @@
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        // بخش اصلی: رندر تصویر روی چرخ و چرخاندن آن
         ctx.save();
         ctx.translate(radius, radius);
         ctx.rotate(currentRotation);
 
         if (wheelImage && wheelImage.complete) {
-            // ایجاد یک برش دایره‌ای برای تصویر تا از کادر چرخ بیرون نزند
+            // برش دایره‌ای تمیز برای عکس روی چرخ
             ctx.beginPath();
             ctx.arc(0, 0, radius - 6, 0, 2 * Math.PI);
             ctx.clip();
-            // رسم تصویر در مرکز چرخ
+            // رسم عکس بدون هیچ ستاره یا نوشته اضافی روی آن
             ctx.drawImage(wheelImage, -radius, -radius, canvas.width, canvas.height);
         } else {
-            // اگر تصویری نبود، چرخ رنگی سنتی رسم می‌شود
+            // حالت پیش‌فرض رنگی (فقط در صورت نبودن عکس)
             for (let i = 0; i < numSegments; i++) {
                 ctx.beginPath();
                 ctx.moveTo(0, 0);
@@ -207,18 +205,17 @@
                 ctx.strokeStyle = '#ffffff';
                 ctx.stroke();
             }
-        }
-
-        // رسم ستاره‌ها و خطوط راهنما روی تصویر (برای مشخص بودن مرز بخش‌ها)
-        for (let i = 0; i < numSegments; i++) {
-            ctx.save();
-            ctx.rotate(i * anglePerSegment + anglePerSegment / 2);
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 14px Tahoma';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('★', radius / 1.4, 0); 
-            ctx.restore();
+            // رسم ستاره‌ها فقط روی چرخ رنگی پیش‌فرض
+            for (let i = 0; i < numSegments; i++) {
+                ctx.save();
+                ctx.rotate(i * anglePerSegment + anglePerSegment / 2);
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 14px Tahoma';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('★', radius / 1.4, 0); 
+                ctx.restore();
+            }
         }
         ctx.restore();
     }
